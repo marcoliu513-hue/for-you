@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>有一封给你的信</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; overflow: hidden; background: #0d0c0c; color: #f5ebde;
+    font-family: "Songti SC", "STSong", "Noto Serif SC", serif; -webkit-tap-highlight-color: transparent; }
+
+  /* 照片:慢慢浮现 + 缓慢推近 */
+  #photo { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 62% 50%;
+    opacity: 0; transform: scale(1.14); transition: opacity 3s, transform 26s ease-out; }
+  .open #photo { opacity: 1; transform: scale(1); }
+  #shade { position: fixed; inset: 0; background: linear-gradient(#000a 0%, #0005 38%, transparent 55%); }
+
+  /* 文案:落在照片上方的暗墙上 */
+  #words { position: fixed; top: calc(6vh + env(safe-area-inset-top)); left: 0; right: 0; padding: 0 24px; text-align: center; }
+  #words p { font-size: clamp(16px, 4.6vw, 21px); line-height: 2.05; letter-spacing: .1em;
+    opacity: 0; transform: translateY(10px); transition: opacity 1.8s, transform 1.8s; text-shadow: 0 1px 12px #000; }
+  #words p.on { opacity: 1; transform: none; }
+  #words p.sign { margin-top: .6em; font-size: clamp(13px, 3.6vw, 16px); opacity: 0; }
+  #words p.sign.on { opacity: .75; }
+
+  /* 封面:一封信 */
+  #cover { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px; background: #1b1413; transition: opacity 1.2s, transform 1.2s; }
+  .open #cover { opacity: 0; transform: scale(1.08); pointer-events: none; }
+  .env { position: relative; width: 240px; height: 160px; background: #efe3d0; border-radius: 6px; box-shadow: 0 18px 50px #000a; }
+  .env::before { content: ""; position: absolute; inset: 0; background: #e2d2b9; border-radius: 6px 6px 0 0;
+    clip-path: polygon(0 0, 100% 0, 50% 58%); }
+  .env::after { content: "♥"; position: absolute; left: 50%; top: 58%; width: 44px; height: 44px; margin: -22px;
+    display: grid; place-items: center; color: #fff; background: #c0392b; border-radius: 50%; font-size: 20px;
+    animation: beat 1.4s ease-in-out infinite; }
+  #cover b { font-weight: 400; font-size: 20px; letter-spacing: .2em; }
+  #cover small { font-size: 13px; letter-spacing: .3em; opacity: .55; animation: blink 2s ease-in-out infinite; }
+  @keyframes beat { 50% { transform: scale(1.15); } }
+  @keyframes blink { 50% { opacity: .2; } }
+
+  /* 音乐开关 */
+  #music { position: fixed; top: calc(14px + env(safe-area-inset-top)); right: 14px; width: 36px; height: 36px;
+    display: none; place-items: center; color: #f5ebde; background: #0006; border: 1px solid #fff6; border-radius: 50%; font-size: 16px; }
+  .open #music { display: grid; }
+  #music.on { animation: spin 5s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) { #photo { transform: none; transition: opacity 2s; } .env::after, #music.on { animation: none; } }
+</style>
+</head>
+<body>
+
+<img id="photo" src="photo.jpg" alt="我们">
+<div id="shade"></div>
+<div id="words"></div>
+<button id="music" aria-label="音乐开关">♪</button>
+
+<div id="cover">
+  <div class="env"></div>
+  <b>敏敏猪🐷 亲启</b>
+  <small>轻点拆开</small>
+</div>
+
+<audio id="bgm" src="song.mp3" loop preload="auto"></audio>
+
+<script>
+// 想改文案就改这里,一行一句
+const LINES = [
+  '敏敏猪🐷',
+  '那天的水很暖，',
+  '却不及你靠过来的那一下。',
+  '世界很吵，',
+  '有你在的地方，才是零距离。',
+  '往后的山河万里，',
+  '我都想和你一起看。',
+];
+const SIGN = '—— marco';
+
+const $ = id => document.getElementById(id);
+const bgm = $('bgm'), music = $('music');
+const ps = [...LINES, SIGN].map(t => {
+  const p = $('words').appendChild(document.createElement('p'));
+  p.textContent = t; if (t === SIGN) p.className = 'sign';
+  return p;
+});
+
+$('cover').onclick = () => {
+  bgm.play().catch(() => {});                 // 这次点击同时解锁微信里的音乐播放
+  document.body.classList.add('open');
+  ps.forEach((p, i) => setTimeout(() => p.classList.add('on'), 2800 + i * 2600));
+};
+music.onclick = () => bgm.paused ? bgm.play() : bgm.pause();
+bgm.onplay = bgm.onpause = () => music.classList.toggle('on', !bgm.paused);
+</script>
+</body>
+</html>
